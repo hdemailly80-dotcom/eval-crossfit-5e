@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Évaluation EPS 5e</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; min-height: 100vh; }
+
+  .screen { display: none; padding: 16px; max-width: 700px; margin: 0 auto; }
+  .screen.active { display: block; }
+
+  h1 { color: #1a5c2a; font-size: 1.4rem; text-align: center; margin-bottom: 18px; }
+  h2 { color: #1a5c2a; font-size: 1.1rem; margin-bottom: 12px; }
+
+  .card { background: white; border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+  label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 4px; font-weight: 600; }
+  input, select { width: 100%; padding: 10px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 0.95rem; margin-bottom: 10px; }
+  input:focus, select:focus { outline: none; border-color: #1a5c2a; }
+
+  .btn { display: block; width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.15s; margin-bottom: 10px; }
+  .btn-green { background: #1a5c2a; color: white; }
+  .btn-green:hover { background: #145222; }
+  .btn-grey { background: #e0e0e0; color: #444; }
+  .btn-grey:hover { background: #ccc; }
+
+  /* Familles */
+  .famille { border: 2px solid #e0e0e0; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .famille.done { border-color: #1a5c2a; background: #f0fff4; }
+  .famille-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .famille-title { font-weight: 700; font-size: 1rem; color: #1a5c2a; }
+  .badge { font-size: 0.75rem; padding: 3px 8px; border-radius: 20px; font-weight: 600; }
+  .badge-done { background: #1a5c2a; color: white; }
+  .badge-todo { background: #e0e0e0; color: #666; }
+
+  .exo-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .exo-btn { padding: 10px 6px; border: 2px solid #ddd; border-radius: 8px; background: white; font-size: 0.8rem; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.15s; }
+  .exo-btn:hover { border-color: #1a5c2a; }
+  .exo-btn.selected { border-color: #1a5c2a; background: #1a5c2a; color: white; }
+
+  .exo-info { font-size: 0.78rem; color: #888; text-align: center; margin-bottom: 8px; }
+
+  .niveau-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .niveau-btn { padding: 10px; border: 2px solid #ddd; border-radius: 8px; background: white; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.15s; }
+  .niveau-btn:hover { border-color: #f0a500; }
+  .niveau-btn.selected { border-color: #f0a500; background: #f0a500; color: white; }
+
+  /* No Rep */
+  .norep-section { text-align: center; }
+  .norep-count { font-size: 3rem; font-weight: 900; color: #c0392b; margin: 10px 0; }
+  .btn-norep { background: #c0392b; color: white; font-size: 1.2rem; padding: 18px; border: none; border-radius: 12px; width: 100%; font-weight: 900; cursor: pointer; margin-bottom: 8px; letter-spacing: 1px; box-shadow: 0 4px 12px rgba(192,57,43,0.4); transition: all 0.15s; }
+  .btn-norep:active { transform: scale(0.97); }
+  .btn-annuler { background: #e0e0e0; color: #555; font-size: 0.85rem; padding: 10px; border: none; border-radius: 8px; width: 100%; cursor: pointer; font-weight: 600; }
+
+  /* Résumé note */
+  .note-display { text-align: center; padding: 20px; }
+  .note-value { font-size: 4rem; font-weight: 900; color: #c0392b; }
+  .note-label { font-size: 1rem; color: #555; margin-bottom: 6px; }
+  .note-detail { font-size: 0.85rem; color: #888; margin-top: 8px; }
+
+  .recap-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 10px; }
+  .recap-table th, .recap-table td { padding: 7px 10px; border: 1px solid #eee; text-align: left; }
+  .recap-table th { background: #f5f5f5; font-weight: 700; }
+
+  .status-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+  .pill-done { background: #1a5c2a; color: white; }
+  .pill-todo { background: #e0e0e0; color: #666; }
+
+  .info-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .optional-label { font-size: 0.75rem; color: #aaa; font-style: italic; }
+
+  .sending { text-align: center; color: #1a5c2a; font-weight: 600; padding: 10px; }
+  .error { color: #c0392b; font-size: 0.85rem; text-align: center; padding: 6px; }
+</style>
+</head>
+<body>
+
+<!-- ÉCRAN 1 : Saisie identité -->
+<div class="screen active" id="screen-identity">
+  <h1>🏋️ Évaluation EPS — 5e</h1>
+  <div class="card">
+    <h2>Informations</h2>
+    <div class="info-row">
+      <div>
+        <label>Pseudo Élève</label>
+        <input type="text" id="pseudo" placeholder="Ex: Dupont_Tom">
+      </div>
+      <div>
+        <label>Classe</label>
+        <select id="classe">
+          <option value="">-- Choisir --</option>
+          <option>5A</option><option>5B</option><option>5C</option><option>5D</option><option>5E</option>
+        </select>
+      </div>
+    </div>
+    <div class="info-row">
+      <div>
+        <label>Juge (élève)</label>
+        <input type="text" id="juge" placeholder="Pseudo du juge">
+      </div>
+      <div>
+        <label>Coach <span class="optional-label">(facultatif)</span></label>
+        <input type="text" id="coach" placeholder="Nom du coach">
+      </div>
+    </div>
+    <button class="btn btn-green" onclick="goToExos()">Suivant →</button>
+  </div>
+</div>
+
+<!-- ÉCRAN 2 : Choix exercices -->
+<div class="screen" id="screen-exos">
+  <h1>🏋️ Choix des exercices</h1>
+
+  <div class="status-bar" id="status-bar"></div>
+
+  <div id="familles-container"></div>
+
+  <div class="card norep-section">
+    <h2>⛔ No Rep</h2>
+    <div class="norep-count" id="norep-count">0</div>
+    <button class="btn-norep" onclick="addNoRep()">+ NO REP</button>
+    <button class="btn-annuler" onclick="removeNoRep()">↩ Annuler dernier no rep</button>
+  </div>
+
+  <button class="btn btn-green" onclick="goToResult()" id="btn-valider">Voir ma note →</button>
+</div>
+
+<!-- ÉCRAN 3 : Résultat -->
+<div class="screen" id="screen-result">
+  <h1>🏆 Résultat</h1>
+  <div class="card">
+    <div class="note-display">
+      <div class="note-label">Note finale</div>
+      <div class="note-value" id="note-finale">—</div>
+      <div style="font-size:1rem;color:#555;">/20</div>
+      <div class="note-detail" id="note-detail"></div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Récapitulatif</h2>
+    <table class="recap-table" id="recap-table"></table>
+  </div>
+  <button class="btn btn-green" onclick="sendToSheets()" id="btn-send">Envoyer sur Google Sheets ✓</button>
+  <button class="btn btn-grey" onclick="resetAll()">Nouvel élève</button>
+  <div id="send-status"></div>
+</div>
+
+<script>
+// ===== DONNÉES =====
+const FAMILLES = [
+  {
+    id: 'explosivite', label: 'EXPLOSIVITÉ', color: '#e74c3c',
+    exos: [
+      { nom: 'FENTE', objectif: '15 rép' },
+      { nom: 'SQUAT', objectif: '15 rép' },
+      { nom: 'BOX JUMP', objectif: '10 rép' },
+    ]
+  },
+  {
+    id: 'force', label: 'FORCE', color: '#e67e22',
+    exos: [
+      { nom: 'POMPES', objectif: '10 rép' },
+      { nom: 'DIPS', objectif: '6 rép' },
+      { nom: 'MED BALL', objectif: '10 rép' },
+    ]
+  },
+  {
+    id: 'resistance', label: 'RÉSISTANCE', color: '#8e44ad',
+    exos: [
+      { nom: 'CHAISE', objectif: '20"' },
+      { nom: 'ABDOS BALL', objectif: '20"' },
+      { nom: 'GAINAGE', objectif: '20"' },
+    ]
+  },
+  {
+    id: 'cardio', label: 'CARDIO', color: '#2980b9',
+    exos: [
+      { nom: 'BURPEE', objectif: '8 rép' },
+      { nom: 'MOUNTAIN', objectif: '20 rép' },
+      { nom: 'JUMPING J', objectif: '20 rép' },
+      { nom: 'CORDE', objectif: '30 rép' },
+    ]
+  }
+];
+
+// Barème : lignes = somme niveaux (4..12), colonnes = no rep (0..13+)
+// Ligne 0 = somme 4, ligne 8 = somme 12
+const BAREME = [
+  //0   1   2   3   4   5   6   7   8   9  10  11  12  13+
+  [12, 11, 10,  9,  8,  7,  6,  5,  4,  3,  2,  1,  0,  0], // somme 4
+  [13, 12, 11, 10,  8,  6,  5,  4,  3,  2,  1,  0,  0,  0], // somme 5
+  [14, 13, 12, 11, 10,  8,  7,  6,  5,  4,  3,  2,  1,  0], // somme 6
+  [15, 14, 13, 12, 11, 10,  8,  7,  5,  4,  3,  2,  1,  0], // somme 7
+  [16, 15, 14, 13, 12, 11,  9,  7,  5,  4,  3,  2,  1,  0], // somme 8
+  [17, 16, 15, 14, 13, 12, 10,  8,  6,  4,  3,  2,  1,  0], // somme 9
+  [18, 17, 16, 15, 14, 13, 11,  9,  7,  5,  3,  2,  1,  0], // somme 10
+  [19, 18, 17, 16, 15, 14, 13, 11,  9,  7,  5,  3,  1,  0], // somme 11
+  [20, 19, 18, 17, 16, 15, 14, 12, 10,  8,  6,  4,  2,  0], // somme 12
+];
+
+// ===== ÉTAT =====
+let state = {
+  pseudo: '', classe: '', juge: '', coach: '',
+  choix: {}, // { familleId: { exo, niveau } }
+  noRep: 0
+};
+
+// ===== INIT FAMILLES =====
+function buildFamilles() {
+  const container = document.getElementById('familles-container');
+  container.innerHTML = '';
+  FAMILLES.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'famille' + (state.choix[f.id] ? ' done' : '');
+    div.id = 'famille-' + f.id;
+
+    const choix = state.choix[f.id];
+    const exoChoisi = choix ? choix.exo : null;
+    const niveauChoisi = choix ? choix.niveau : null;
+
+    div.innerHTML = `
+      <div class="famille-header">
+        <span class="famille-title" style="color:${f.color}">${f.label}</span>
+        <span class="badge ${choix ? 'badge-done' : 'badge-todo'}">${choix ? '✓ OK' : 'À compléter'}</span>
+      </div>
+      <div class="exo-grid">
+        ${f.exos.map(e => `
+          <button class="exo-btn ${exoChoisi === e.nom ? 'selected' : ''}"
+            onclick="selectExo('${f.id}','${e.nom}')">
+            ${e.nom}<br><small style="font-weight:400;opacity:0.8">${e.objectif}</small>
+          </button>
+        `).join('')}
+      </div>
+      ${exoChoisi ? `<div class="exo-info">Exercice : <b>${exoChoisi}</b> — Choisir un niveau :</div>
+      <div class="niveau-grid">
+        ${[1,2,3].map(n => `
+          <button class="niveau-btn ${niveauChoisi === n ? 'selected' : ''}"
+            onclick="selectNiveau('${f.id}',${n})">Niveau ${n}</button>
+        `).join('')}
+      </div>` : ''}
+    `;
+    container.appendChild(div);
+  });
+  updateStatusBar();
+}
+
+function updateStatusBar() {
+  const bar = document.getElementById('status-bar');
+  bar.innerHTML = FAMILLES.map(f => {
+    const done = !!state.choix[f.id];
+    return `<span class="status-pill ${done ? 'pill-done' : 'pill-todo'}">${f.label} ${done ? '✓' : '○'}</span>`;
+  }).join('');
+}
+
+function selectExo(familleId, nomExo) {
+  if (!state.choix[familleId]) state.choix[familleId] = {};
+  state.choix[familleId].exo = nomExo;
+  state.choix[familleId].niveau = null;
+  buildFamilles();
+}
+
+function selectNiveau(familleId, niveau) {
+  state.choix[familleId].niveau = niveau;
+  buildFamilles();
+}
+
+function addNoRep() {
+  state.noRep++;
+  document.getElementById('norep-count').textContent = state.noRep;
+}
+function removeNoRep() {
+  if (state.noRep > 0) state.noRep--;
+  document.getElementById('norep-count').textContent = state.noRep;
+}
+
+// ===== NAVIGATION =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goToExos() {
+  const pseudo = document.getElementById('pseudo').value.trim();
+  const classe = document.getElementById('classe').value;
+  const juge = document.getElementById('juge').value.trim();
+  if (!pseudo || !classe || !juge) {
+    alert('Merci de renseigner le pseudo, la classe et le juge.');
+    return;
+  }
+  state.pseudo = pseudo;
+  state.classe = classe;
+  state.juge = juge;
+  state.coach = document.getElementById('coach').value.trim();
+  buildFamilles();
+  showScreen('screen-exos');
+}
+
+function goToResult() {
+  // Vérif tout complet
+  const incomplet = FAMILLES.find(f => !state.choix[f.id] || !state.choix[f.id].niveau);
+  if (incomplet) {
+    alert(`Merci de choisir un exercice ET un niveau pour la famille : ${incomplet.label}`);
+    return;
+  }
+
+  // Calcul somme niveaux
+  const somme = FAMILLES.reduce((acc, f) => acc + state.choix[f.id].niveau, 0);
+  const noRep = Math.min(state.noRep, 13);
+  const ligneIdx = somme - 4; // somme 4 → idx 0
+  const note = BAREME[ligneIdx][noRep];
+
+  // Affichage note
+  document.getElementById('note-finale').textContent = note;
+  document.getElementById('note-detail').textContent =
+    `Somme des niveaux : ${somme} | No Rep : ${state.noRep}`;
+
+  // Récap tableau
+  const table = document.getElementById('recap-table');
+  table.innerHTML = `<tr><th>Famille</th><th>Exercice</th><th>Niveau</th></tr>` +
+    FAMILLES.map(f => `<tr>
+      <td>${f.label}</td>
+      <td>${state.choix[f.id].exo}</td>
+      <td>${state.choix[f.id].niveau}</td>
+    </tr>`).join('') +
+    `<tr><td colspan="2"><b>No Rep total</b></td><td>${state.noRep}</td></tr>`;
+
+  state.noteFinale = note;
+  state.sommeNiveaux = somme;
+  showScreen('screen-result');
+}
+
+// ===== GOOGLE SHEETS =====
+const SHEET_ID = '11IdzRFJYUYa6nit82HoUZTrCQbKdiAOO-7t83RFTxTg';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzIVE-1vs3uajl1d00B6P7k8HLm4gfOyll3ox5mx_CKeje7oOYfJngD9lXl51R4eQLK/exec';
+
+async function sendToSheets() {
+  const btn = document.getElementById('btn-send');
+  const status = document.getElementById('send-status');
+
+  if (!APPS_SCRIPT_URL) {
+    status.innerHTML = `<div class="error">⚠️ URL Apps Script non configurée.<br>Voir les instructions ci-dessous.</div>`;
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours…';
+  status.innerHTML = '<div class="sending">📤 Envoi en cours…</div>';
+
+  const row = [
+    new Date().toLocaleString('fr-FR'),
+    state.pseudo,
+    state.classe,
+    state.juge,
+    state.coach || '',
+    ...FAMILLES.map(f => state.choix[f.id].exo),
+    ...FAMILLES.map(f => state.choix[f.id].niveau),
+    state.noRep,
+    state.noteFinale
+  ];
+
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ classe: state.classe, row })
+    });
+    const data = await res.json();
+    if (data.result === 'ok') {
+      status.innerHTML = '<div class="sending">✅ Données envoyées avec succès !</div>';
+      btn.textContent = '✓ Envoyé';
+    } else {
+      throw new Error(data.error || 'Erreur inconnue');
+    }
+  } catch(e) {
+    status.innerHTML = `<div class="error">❌ Erreur : ${e.message}</div>`;
+    btn.disabled = false;
+    btn.textContent = 'Réessayer';
+  }
+}
+
+function resetAll() {
+  state = { pseudo:'', classe:'', juge:'', coach:'', choix:{}, noRep:0 };
+  document.getElementById('pseudo').value = '';
+  document.getElementById('classe').value = '';
+  document.getElementById('juge').value = '';
+  document.getElementById('coach').value = '';
+  document.getElementById('norep-count').textContent = '0';
+  document.getElementById('send-status').innerHTML = '';
+  const btn = document.getElementById('btn-send');
+  btn.disabled = false;
+  btn.textContent = 'Envoyer sur Google Sheets ✓';
+  showScreen('screen-identity');
+}
+</script>
+</body>
+</html>
